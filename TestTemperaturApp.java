@@ -687,4 +687,64 @@ public class TestTemperatureApp extends TestCase {
         assertFalse(failed);
     }
     
+    
+        public void testCaseInsensitiveFareheit() throws Exception {
+    	boolean login=true;
+		boolean can_advance=true;
+		boolean failed=false;
+		
+		WebElement resultsDiv ;
+		WebElement conversion_result;
+		
+        String result = " TEST RESULT\n";
+       
+        
+		WebDriver driver = new FirefoxDriver();
+            // Go to the home page
+        driver.get("http://adnan.appspot.com/testing-lab-login.html");
+            
+       // Logging in as Andy with password apple ( not significant, just to bring it to the next page)
+        WebElement query = driver.findElement(By.name("userId"));
+        query.clear();
+        query.sendKeys("charley");
+  
+        query = driver.findElement(By.name("userPassword"));
+        if (!query.isDisplayed()) { System.out.println("got to wrong page\n"); can_advance=false;}
+        assertTrue(can_advance);
+        
+        query.clear();
+        query.sendKeys("china");
+          
+        // LOGGING IN 
+        query = driver.findElement(By.xpath("//input[@type='submit']"));
+        if (!query.isDisplayed()) { System.out.println("got to wrong page\n"); can_advance=false;}
+        assertTrue(can_advance);
+        query.click();
+           
+        // Sleep until the div we want is visible or 5 seconds is over
+            
+        long end = System.currentTimeMillis() + 5000;
+        login=false;
+        resultsDiv=null;
+        while (System.currentTimeMillis() < end) {
+             try { resultsDiv = driver.findElement(By.name("farenheitTemperature"));}
+             catch (Exception e) { failed=true;} 
+            // If results have been returned, the results are displayed in a drop down.
+            if (resultsDiv.isDisplayed()) { login=true; break;}
+        }
+        
+        String []a={"FArenHEITTemperature"}; 
+        if (!failed) {
+        	for (int i=0; i<a.length; i++){
+        		try { resultsDiv = driver.findElement(By.name(a[i]));}
+        		catch (Exception e) { 
+        			System.out.println("Failed looking for"+a[i]+"\n"); 
+        			failed=true; result+="\t"+a[i]+"\n"; }
+        	}
+        }
+ 		
+        if (failed)  {System.out.println("CaseInsensitivity for farenheitTemperature failed\n" + result);}
+ 		assertFalse(failed);
+    }
+
 }
