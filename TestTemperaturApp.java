@@ -78,11 +78,12 @@ public class TestTemperatureApp extends TestCase {
 	public void testCorrectLogin2() throws Exception {
 		boolean login=true;
 		boolean can_advance=true;
+		boolean failed=false;
         WebDriver driver = new FirefoxDriver();
         WebElement query=null;
         WebElement resultsDiv=null;
         
-        String [] [] a = { {"aNDy", "apple"}, {"BOB","bathtub"}, {"cHARarlEY", "china"}};                
+        String [] [] a = { {"aNDy", "apple"}, {"BOB","bathtub"}, {"cHARlEY", "china"}};                
         
         for (int i = 0; i < a.length; i++) {
         	// Go to the home page
@@ -128,19 +129,31 @@ public class TestTemperatureApp extends TestCase {
             	} 
 
         		// If results have been returned, the results are displayed in a drop down.
-        		if (resultsDiv.isDisplayed()) { login=true;
-        		break;
-        		}	
+        		if (resultsDiv.isDisplayed()) 
+        		{login=true;}
+        		if(login) break;
         	}
-        	if(!login) {System.out.println(" Login Failed and expected to pass for "+a[i][0]+" password used "+ a[i][1]+"\n");}
+    		try {resultsDiv = driver.findElement(By.name("farenheitTemperature"));}
+        	catch (Exception e) { 
+        		can_advance=false; 
+        		assertTrue(can_advance);
+        	} 
+
+    		// If results have been returned, the results are displayed in a drop down.
+    		if (resultsDiv.isDisplayed()) {login=true;}
+
+        	if(!login) {
+        		failed=true;
+        		System.out.println(" Login Failed and expected to pass for "+a[i][0]+" password used "+ a[i][1]+"\n");}
         }      
-        assertTrue(login); 
+        assertFalse(failed); 
         
     }
     
 	public void testInorrectLogin() throws Exception {
 		boolean login=true;
 		boolean can_advance=true;
+		boolean failed=false;
         WebDriver driver = new FirefoxDriver();
         WebElement query=null;
         WebElement resultsDiv=null;
@@ -163,7 +176,7 @@ public class TestTemperatureApp extends TestCase {
         
         	try {query = driver.findElement(By.name("userPassword"));}
         	catch (Exception e) { 
-        		can_advance=false; 
+        		can_advance=false;
         		assertTrue(can_advance);
         	} 
       	
@@ -189,21 +202,29 @@ public class TestTemperatureApp extends TestCase {
         	long end = System.currentTimeMillis() + 5000;
         	while (System.currentTimeMillis() < end) {
         		
-        		try {resultsDiv = driver.findElement(By.linkText("link"));}
-            	catch (Exception e) { 
-            		login=true; 
-            	} 
-        		if(login) break;
-        		// If results have been returned, the results are displayed in a drop down.
+        		try {resultsDiv = driver.findElement(By.linkText("link"));
+           		// If results have been returned, the results are displayed in a drop down.
         		if (resultsDiv.isDisplayed()) { 
-        			login=false;
-        			break;
+        			login=false;} }
+            	catch (Exception e) { ;
+            	} 
+        		// If results have been returned, the results are displayed in a drop down.
+        		
+        		if(!login)
+        			 {break;}
         		}
-        	}
-        	// if I succeeded to login then we have a problem
-        	if(login) {System.out.println(" Login Failed and expected to pass for "+a[i][0]+" password used "+ a[i][1]+"\n");}      
-        	assertFalse(login); 
+        	
+    		login=true;
+    		try {resultsDiv = driver.findElement(By.name("farenheitTemperature"));}
+        	catch (Exception e) { login=false;
+        	} 
+    		if(login) {failed=true;}
+    		
         }
+        	// if I succeeded to login then we have a problem
+        	if(failed) {System.out.println(" Login Passed and not expected \n");}      
+        	assertFalse(failed); 
+
         
         
     }
@@ -211,7 +232,8 @@ public class TestTemperatureApp extends TestCase {
 	public void testIncorrectLoginDelay() throws Exception {
 		boolean login=false;
 		boolean can_advance=true;
-        WebDriver driver = new FirefoxDriver();
+        boolean failed=false;
+		WebDriver driver = new FirefoxDriver();
         WebElement query=null;
         WebElement resultsDiv=null;
         
@@ -271,6 +293,9 @@ public class TestTemperatureApp extends TestCase {
         		}	
         	}
         }
+        
+        
+        
         long sec10 = System.currentTimeMillis() + 1000*60;
         while (System.currentTimeMillis() < sec10) { // try all the time to advance 
         	
@@ -304,22 +329,19 @@ public class TestTemperatureApp extends TestCase {
             	long end = System.currentTimeMillis() + 5000;
                 login=false;
                 while (System.currentTimeMillis() < end) {
-                	try {resultsDiv = driver.findElement(By.name("farenheitTemperature"));}
-                    catch (Exception e) { can_advance=true; } 
-                	if(can_advance) break;
-                	
-                	// If results have been returned, the results are displayed in a drop down.
+                	try {resultsDiv = driver.findElement(By.name("farenheitTemperature"));
                 	if (resultsDiv.isDisplayed()) { 
-                		login=true;
-                		break;
-                	}	
-              
-                }// end checking if we succeeded to login
+                		login=true; failed=true;}	}
+                    catch (Exception e) {;} 
+                	
+                	if (failed) break;
+                 }// end checking if we succeeded to login
             }// end the fact that we could attept to login
+            if (failed) break;
         }// end the 10 sec
         
-    if(login) {System.out.println(" Succeeded to login before 10 sec elapsed\n");}      
-    assertFalse(login); 
+    if(failed) {System.out.println(" Succeeded to login before 10 sec elapsed\n");}      
+    assertFalse(failed); 
    }
  
     public void testCorrectInputTemp() throws Exception {
@@ -392,12 +414,12 @@ public class TestTemperatureApp extends TestCase {
         //</body>
         
         int city=0; // we have only 3 cities hence the value can be only 0 (Austin),1(Berkeley),2(New York)
-        String [] 	far = 	   { "0","1.123","2.432","211.78","212.0", "-111.55", "213.27", "214.875", "215.53", "-1.72"}; 
+        String [] 	far = 	   { "0","1.123","2.432","211.78","211.1", "-111.55", "213.27", "214.875", "215.53", "-1.72"}; 
         int [] far_precision = { 2, 2, 2, 2, 2, 1, 1, 1, 1, 1};
         int f=0; // far goes over the values presented above to be tested for the Farenheit value we provide
         
-        //int [][]Tests={{0,0},{1,1},{2,2},{3,1},{4,2},{,0},{5,1},{6,2},{7,0},{8,1},{9,2}};
-        int [][]Tests={{0,2}};
+        //int [][]Tests={{0,0},{1,1},{2,2},{3,1},{4,2},{5,1},{6,2},{7,0},{8,1},{9,2}};
+        int [][]Tests={{8,2}};
         
         for ( int j=0; j< Tests.length ; j++) {
         	city= Tests[j][1]; // which city to choose this test
@@ -425,12 +447,17 @@ public class TestTemperatureApp extends TestCase {
         	end = System.currentTimeMillis() + 5000;
         	gotCelsius=false;
         	while (System.currentTimeMillis() < end) {
-        		resultsDiv = driver.findElement(By.name("city"));
+        		try{ resultsDiv = driver.findElement(By.name("city"));}
+        		catch (Exception e) { 	
+        			System.out.println("Got to wrong page\n"); 
+        			can_advance=false;
+        			assertTrue(can_advance);}
         		// If results have been returned, the results are displayed in a drop down.
         		if (resultsDiv.isDisplayed()) { gotCelsius=true;
         		break;
         		}
         	}  
+       		if (resultsDiv.isDisplayed()) { gotCelsius=true;} 
         	if(!gotCelsius) {System.out.println(" Cannot get past the convertion to the city choice ; Asked to convert "+ far[f] +"F\n");}     
         	assertTrue(login);
         
@@ -449,9 +476,9 @@ public class TestTemperatureApp extends TestCase {
             len=0;
             contents = Celsius_conversion.split("=");
             value    = contents[1].trim().split("\\s+");
-            digits   = value[0].split("\\.");
-            if (digits.length>2) {
-            	len=(digits[1]).length();
+            digits   = value[0].split("\\."); 
+            if (digits.length>1) {
+            	len=(digits[1]).length(); 
             	if (len>expected_precision){
             		result += "\ttest number: "+Integer.toString(j)+" For temperature "+ far[f] + "F shows precision of "+ Integer.toString(len)+" in C\n";                                    
             		failed=true; 
@@ -459,7 +486,7 @@ public class TestTemperatureApp extends TestCase {
               }
             
             System.out.println(Celsius_conversion); // prints something like : "251 Farenheit = 121.67 Celsius"
-            //System.out.println("Read value in celsius "+value[0]+"\n"); 
+            System.out.println("Read value in celsius "+value[0]+" expected precision "+Integer.toString(expected_precision)+"\n"); 
         	//--------------------------------------------------------------
         	// here we enter the page that gives us the value in Celsius 
         	//<html>
@@ -554,21 +581,14 @@ public class TestTemperatureApp extends TestCase {
     }
     public void testIncorrectInputTemp() throws Exception {
     	boolean login=true;
-		boolean gotCelsius=true;
-		boolean gotCity=true;
 		boolean can_advance=true;
 		boolean failed=false;
-		int expected_precision=2;
+		
 		WebElement resultsDiv ;
 		WebElement conversion_result;
-		WebElement city_report;
-		String Celsius_conversion;
-		String city_temp_report;
-        String [] contents;
-        String [] value;
-        String [] digits;
+		
         String result = " TEST RESULT\n";
-        int len=0;
+       
         
 		WebDriver driver = new FirefoxDriver();
             // Go to the home page
@@ -612,7 +632,7 @@ public class TestTemperatureApp extends TestCase {
         // here we are moving into the application page that expects the value n Farenheit
         
         int city=0; // we have only 3 cities hence the value can be only 0 (Austin),1(Berkeley),2(New York)
-        String [] 	far = 	   { "bobo","3E45"}; 
+        String [] 	far = 	   { "3E45","bobo"}; 
         // far goes over the values presented above to be tested for the Farenheit value we provide
                
         for ( int f=0; f< far.length ; f++) {
@@ -639,7 +659,6 @@ public class TestTemperatureApp extends TestCase {
         	// If we see "city" it means it is wrong
         	
         	end = System.currentTimeMillis() + 5000;
-        	gotCelsius=false;
         	conversion_result=null;
 
         	while (System.currentTimeMillis() < end) {
@@ -653,10 +672,13 @@ public class TestTemperatureApp extends TestCase {
         		if (conversion_result.isDisplayed()) break; // we got some page that has an h2 in it
         	}
         
-			try {resultsDiv = driver.findElement(By.name("city")); }
-			catch (Exception e){
-				failed=true; 
-				result+="\ttest number: "+Integer.toString(f)+" Provided "+ far[f] + " and was accepted\n"; 
+			try {resultsDiv = driver.findElement(By.name("city")); 
+				if(resultsDiv.isDisplayed()){
+						failed=true;
+						result+="\ttest number: "+Integer.toString(f)+" Provided wrong input "+far[f]+"and was accepted\n";
+						}
+				}
+			catch (Exception e){ ;
 			}
    
         	driver.get("http:adnan.appspot.com/testing-lab-calculator.html");// return to a place where we provide data
@@ -665,3 +687,4 @@ public class TestTemperatureApp extends TestCase {
         assertFalse(failed);
     }
     
+}
